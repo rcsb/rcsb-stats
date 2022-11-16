@@ -2,26 +2,22 @@ package org.rcsb.stats.task;
 
 import org.rcsb.cif.schema.mm.MmCifFile;
 import org.rcsb.stats.Helpers;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Task01_CountHeavyAtoms {
-    private static final Logger logger = LoggerFactory.getLogger(Task01_CountHeavyAtoms.class);
-
     public static void main(String[] args) throws IOException {
         Set<String> identifiers = Helpers.getAllIdentifiers();
 
         AtomicInteger counter = new AtomicInteger();
         long heavyAtomCount = Helpers.fetchStructureData(identifiers)
-                .peek(i -> { if (counter.incrementAndGet() % 10000 == 0) logger.info("Processed {} entries", Helpers.formatNumber(counter.get())); })
+                .peek(i -> { if (counter.incrementAndGet() % 10000 == 0) System.out.println("Processed " + Helpers.formatNumber(counter.get()) + " entries"); })
                 .mapToLong(Task01_CountHeavyAtoms::countHeavyAtoms)
                 .sum();
 
-        logger.info("There are {} heavy (non-hydrogen) atoms in {} PDB structures", Helpers.formatNumber(heavyAtomCount), Helpers.formatNumber(counter.get()));
+        System.out.println("There are " + Helpers.formatNumber(heavyAtomCount) + " heavy (non-hydrogen) atoms in " + Helpers.formatNumber(counter.get()) + " PDB structures");
     }
 
     private static long countHeavyAtoms(MmCifFile cifFile) {
