@@ -1,4 +1,4 @@
-package org.rcsb.stats.task;
+package org.rcsb.stats.tasks;
 
 import org.rcsb.cif.schema.mm.MmCifFile;
 import org.rcsb.stats.Helpers;
@@ -7,8 +7,12 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Task01_CountHeavyAtoms {
+class Task01_CountHeavyAtoms {
     public static void main(String[] args) throws IOException {
+        new Task01_CountHeavyAtoms().computeStats();
+    }
+
+    void computeStats() throws IOException {
         Set<String> identifiers = Helpers.getAllIdentifiers();
 
         AtomicInteger counter = new AtomicInteger();
@@ -17,7 +21,7 @@ public class Task01_CountHeavyAtoms {
                 .mapToLong(Task01_CountHeavyAtoms::countHeavyAtoms)
                 .sum();
 
-        System.out.println("There are " + Helpers.formatNumber(heavyAtomCount) + " heavy (non-hydrogen) atoms in " + Helpers.formatNumber(counter.get()) + " PDB structures");
+        System.out.println("There are " + Helpers.formatNumber((int) heavyAtomCount) + " heavy (non-hydrogen) atoms in " + Helpers.formatNumber(counter.get()) + " PDB structures");
     }
 
     private static long countHeavyAtoms(MmCifFile cifFile) {

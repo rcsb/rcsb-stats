@@ -1,4 +1,6 @@
 on:
+  push:
+    branches: [ master ]
   schedule:
     # * is a special character in YAML, so you have to quote this string
     - cron:  '0 0 1 * *'
@@ -14,4 +16,4 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
-      - run: java org.rcsb.stats.task.Task01_CountHeavyAtoms
+      - run: java Task01_CountHeavyAtoms.java
