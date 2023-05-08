@@ -8,6 +8,8 @@ on:
 
 jobs:
   update_stats:
+    if: |
+      !contains(github.event.head_commit.message, '[actions]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -18,6 +20,13 @@ jobs:
           java-version: '17'
       - name: Build with Maven
         run: mvn package
-      - name: Count heavy atoms
+      - name: Task 01 -- Count heavy atoms
         run: java -cp target/rcsb-stats.jar org.rcsb.stats.tasks.Task01_CountHeavyAtoms
+      - name: Commit updated counts
+        run: |
+         git add README.md
+         git commit -m "[actions] Updated counts"
+      - name: Push back to GitHub
+        run: |
+          git push
 
