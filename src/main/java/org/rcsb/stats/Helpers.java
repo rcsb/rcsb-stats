@@ -6,7 +6,6 @@ import com.google.gson.JsonObject;
 import org.rcsb.cif.CifIO;
 import org.rcsb.cif.schema.StandardSchemata;
 import org.rcsb.cif.schema.mm.MmCifFile;
-import org.rcsb.stats.tasks.Task01_CountHeavyAtoms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,27 +68,8 @@ public class Helpers {
     }
 
     private static URL getSearchUrl() throws MalformedURLException {
-        String query = URLEncoder.encode("{\n" +
-                "  \"query\": {\n" +
-                "    \"type\": \"terminal\",\n" +
-                "    \"label\": \"text\",\n" +
-                "    \"service\": \"text\",\n" +
-                "    \"parameters\": {\n" +
-                "      \"attribute\": \"rcsb_entry_container_identifiers.entry_id\",\n" +
-                "      \"operator\": \"exists\",\n" +
-                "      \"negation\": false\n" +
-                "    }\n" +
-                "  },\n" +
-                "  \"return_type\": \"entry\",\n" +
-                "  \"request_options\": {\n" +
-                "    \"results_content_type\": [\n" +
-                "      \"experimental\"\n" +
-                "    ],\n" +
-                "    \"return_all_hits\": true,\n" +
-                "    \"results_verbosity\": \"compact\"\n" +
-                "  }\n" +
-                "}", StandardCharsets.UTF_8);
-        return new URL("https://search.rcsb.org/rcsbsearch/v2/query?json=" + query);
+        String query = URLEncoder.encode(Constants.GET_ALL_QUERY, StandardCharsets.UTF_8);
+        return new URL(Constants.SEARCH_API_URL + query);
     }
 
     /**
@@ -143,7 +123,7 @@ public class Helpers {
                     }
                 })
                 .collect(Collectors.joining(System.lineSeparator()));
-        Files.write(path, out.getBytes(StandardCharsets.UTF_8));
+        Files.writeString(path, out);
     }
 
     private static String insertWhitespaceBeforeUpperCase(String input) {
