@@ -6,6 +6,8 @@ import com.google.gson.JsonObject;
 import org.rcsb.cif.CifIO;
 import org.rcsb.cif.schema.StandardSchemata;
 import org.rcsb.cif.schema.mm.MmCifFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +23,8 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 public class Helpers {
+    private static final Logger logger = LoggerFactory.getLogger(Helpers.class);
+
     /**
      * Obtain structure data for a collection of identifiers.
      * @param identifiers set to operate on
@@ -44,7 +48,7 @@ public class Helpers {
      */
     public static Set<String> getAllIdentifiers() throws IOException {
         URL url = getSearchUrl();
-        System.out.println("Retrieving current entry list from RCSB PDB Search API at " + url.toString().split("\\?")[0]);
+        logger.info("Retrieving current entry list from RCSB PDB Search API at {}", url.toString().split("\\?")[0]);
         Set<String> out = new HashSet<>();
         try (InputStream inputStream = url.openStream()) {
             JsonElement jsonElement = new Gson().fromJson(new InputStreamReader(inputStream), JsonElement.class);
@@ -53,7 +57,7 @@ public class Helpers {
             jsonObject.getAsJsonArray("result_set")
                     .forEach(id -> out.add(id.getAsString()));
         }
-        System.out.println("There are " + Helpers.formatNumber(out.size()) + " entries");
+        logger.info("There are {} entries", Helpers.formatNumber(out.size()));
         return out;
     }
 

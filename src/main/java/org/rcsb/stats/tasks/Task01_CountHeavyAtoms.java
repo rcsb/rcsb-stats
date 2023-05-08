@@ -2,12 +2,16 @@ package org.rcsb.stats.tasks;
 
 import org.rcsb.cif.schema.mm.MmCifFile;
 import org.rcsb.stats.Helpers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class Task01_CountHeavyAtoms {
+    private static final Logger logger = LoggerFactory.getLogger(Task01_CountHeavyAtoms.class);
+
     public static void main(String[] args) throws IOException {
         new Task01_CountHeavyAtoms().computeStats();
     }
@@ -17,11 +21,11 @@ class Task01_CountHeavyAtoms {
 
         AtomicInteger counter = new AtomicInteger();
         long heavyAtomCount = Helpers.fetchStructureData(identifiers)
-                .peek(i -> { if (counter.incrementAndGet() % 10000 == 0) System.out.println("Processed " + Helpers.formatNumber(counter.get()) + " entries"); })
+                .peek(i -> { if (counter.incrementAndGet() % 10000 == 0) logger.info("Processed {} entries", Helpers.formatNumber(counter.get())); })
                 .mapToLong(Task01_CountHeavyAtoms::countHeavyAtoms)
                 .sum();
 
-        System.out.println("There are " + Helpers.formatNumber((int) heavyAtomCount) + " heavy (non-hydrogen) atoms in " + Helpers.formatNumber(counter.get()) + " PDB structures");
+        logger.info("There are {} heavy (non-hydrogen) atoms in {} PDB structures", (int) heavyAtomCount, Helpers.formatNumber(counter.get()));
     }
 
     private static long countHeavyAtoms(MmCifFile cifFile) {
