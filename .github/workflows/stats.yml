@@ -19,4 +19,5 @@ jobs:
       - name: Build with Maven
         run: mvn package
       - name: Run Java program
-        run: java Task01_CountHeavyAtoms
+        run: java -cp target/classes org.rcsb.stats.tasks.Task01_CountHeavyAtoms
+
