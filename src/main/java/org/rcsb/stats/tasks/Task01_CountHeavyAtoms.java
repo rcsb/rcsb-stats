@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-class Task01_CountHeavyAtoms {
+public class Task01_CountHeavyAtoms {
     private static final Logger logger = LoggerFactory.getLogger(Task01_CountHeavyAtoms.class);
 
     public static void main(String[] args) throws IOException {
@@ -24,8 +24,9 @@ class Task01_CountHeavyAtoms {
                 .peek(i -> { if (counter.incrementAndGet() % 10000 == 0) logger.info("Processed {} entries", Helpers.formatNumber(counter.get())); })
                 .mapToLong(Task01_CountHeavyAtoms::countHeavyAtoms)
                 .sum();
+        logger.info("There are {} heavy (non-hydrogen) atoms in {} PDB structures", heavyAtomCount, Helpers.formatNumber(counter.get()));
 
-        logger.info("There are {} heavy (non-hydrogen) atoms in {} PDB structures", (int) heavyAtomCount, Helpers.formatNumber(counter.get()));
+        Helpers.updateCount(this.getClass(), heavyAtomCount, counter.get());
     }
 
     private static long countHeavyAtoms(MmCifFile cifFile) {

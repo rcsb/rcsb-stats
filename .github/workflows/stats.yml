@@ -18,6 +18,6 @@ jobs:
           java-version: '17'
       - name: Build with Maven
         run: mvn package
-      - name: Run Java program
+      - name: Count heavy atoms
         run: java -cp target/rcsb-stats.jar org.rcsb.stats.tasks.Task01_CountHeavyAtoms
 
