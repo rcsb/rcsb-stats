@@ -21,6 +21,7 @@ public class Task01_CountHeavyAtoms {
 
         AtomicInteger counter = new AtomicInteger();
         long heavyAtomCount = Helpers.fetchStructureData(identifiers)
+                .limit(1000)
                 .peek(i -> { if (counter.incrementAndGet() % 10000 == 0) logger.info("Processed {} entries", Helpers.formatNumber(counter.get())); })
                 .mapToLong(Task01_CountHeavyAtoms::countHeavyAtoms)
                 .sum();
