@@ -46,7 +46,7 @@ public class Helpers {
         try {
             return CifIO.readFromURL(new URL(String.format(Constants.BCIF_SOURCE, identifier))).as(StandardSchemata.MMCIF);
         } catch (IOException | ParsingException e) {
-            logger.warn("Failed download of {}", identifier, e);
+            logger.warn("Failed download of {} -- retrying", identifier);
             if (i < 3) {
                 // TODO prolly should exponentially backoff this
                 return fetchStructureData(identifier, i + 1);
