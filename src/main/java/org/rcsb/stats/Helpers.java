@@ -37,7 +37,7 @@ public class Helpers {
      * @return stream of structure data
      */
     public static Stream<MmCifFile> fetchStructureData(Collection<String> identifiers) {
-        return identifiers.stream()
+        return identifiers.parallelStream()
                 .map(i -> {
                     try {
                         return CifIO.readFromURL(new URL(String.format(Constants.BCIF_SOURCE, i))).as(StandardSchemata.MMCIF);
