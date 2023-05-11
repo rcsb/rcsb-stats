@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.rcsb.cif.CifIO;
-import org.rcsb.cif.ParsingException;
 import org.rcsb.cif.schema.StandardSchemata;
 import org.rcsb.cif.schema.mm.MmCifFile;
 import org.slf4j.Logger;
@@ -45,18 +44,8 @@ public class Helpers {
     private static MmCifFile fetchStructureData(String identifier, int i) {
         try {
             return CifIO.readFromURL(new URL(String.format(Constants.BCIF_SOURCE, identifier))).as(StandardSchemata.MMCIF);
-        } catch (IOException | ParsingException e) {
-            logger.warn("Failed download of {} -- retrying", identifier);
-            if (i < 3) {
-                // TODO prolly should exponentially backoff this
-                return fetchStructureData(identifier, i + 1);
-            } else {
-                if (e instanceof IOException f) {
-                    throw new UncheckedIOException(f);
-                } else {
-                    throw (ParsingException) e;
-                }
-            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
