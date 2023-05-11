@@ -38,13 +38,21 @@ public class Helpers {
      */
     public static Stream<MmCifFile> fetchStructureData(Collection<String> identifiers) {
         return identifiers.parallelStream()
-                .map(i -> {
-                    try {
-                        return CifIO.readFromURL(new URL(String.format(Constants.BCIF_SOURCE, i))).as(StandardSchemata.MMCIF);
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                });
+                .map(identifier -> fetchStructureData(identifier, 0));
+    }
+
+    private static MmCifFile fetchStructureData(String identifier, int i) {
+        try {
+            return CifIO.readFromURL(new URL(String.format(Constants.BCIF_SOURCE, identifier))).as(StandardSchemata.MMCIF);
+        } catch (IOException e) {
+            logger.warn("Failed download of {}", identifier, e);
+            if (i < 3) {
+                // TODO prolly should exponentially backoff this
+                return fetchStructureData(identifier, i + 1);
+            } else {
+                throw new UncheckedIOException(e);
+            }
+        }
     }
 
     /**
