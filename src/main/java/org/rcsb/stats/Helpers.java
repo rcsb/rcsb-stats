@@ -38,10 +38,10 @@ public class Helpers {
      */
     public static Stream<MmCifFile> fetchStructureData(Collection<String> identifiers) {
         return identifiers.parallelStream()
-                .map(identifier -> fetchStructureData(identifier, 0));
+                .map(Helpers::fetchStructureData);
     }
 
-    private static MmCifFile fetchStructureData(String identifier, int i) {
+    private static MmCifFile fetchStructureData(String identifier) {
         try {
             return CifIO.readFromURL(new URL(String.format(Constants.BCIF_SOURCE, identifier))).as(StandardSchemata.MMCIF);
         } catch (IOException e) {
