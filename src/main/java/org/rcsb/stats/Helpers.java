@@ -37,7 +37,7 @@ public class Helpers {
      * @return stream of structure data
      */
     public static Stream<MmCifFile> fetchStructureData(Collection<String> identifiers) {
-        return identifiers.parallelStream()
+        return identifiers.stream()
                 .map(Helpers::fetchStructureData);
     }
 
