@@ -45,6 +45,7 @@ public class Helpers {
         try {
             return CifIO.readFromURL(new URL(String.format(Constants.BCIF_SOURCE, identifier))).as(StandardSchemata.MMCIF);
         } catch (IOException e) {
+            logger.warn("Failed to pull structure data for {}", identifier);
             throw new UncheckedIOException(e);
         }
     }
