@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.rcsb.cif.CifIO;
+import org.rcsb.cif.ParsingException;
 import org.rcsb.cif.schema.StandardSchemata;
 import org.rcsb.cif.schema.mm.MmCifFile;
 import org.slf4j.Logger;
@@ -47,6 +48,9 @@ public class Helpers {
         } catch (IOException e) {
             logger.warn("Failed to pull structure data for {}", identifier);
             throw new UncheckedIOException(e);
+        } catch (ParsingException e) {
+            logger.warn("Failed to parse structure data for {}", identifier);
+            throw e;
         }
     }
 
