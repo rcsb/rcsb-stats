@@ -56,11 +56,12 @@ public class Helpers {
 
     /**
      * Get a list of all experimental IDs known to the production system.
+     * @param experimental get experimental or computational identifiers
      * @return collection of known entry IDs
      * @throws IOException operation failed
      */
-    public static Set<String> getAllIdentifiers() throws IOException {
-        URL url = getSearchUrl();
+    public static Set<String> getAllIdentifiers(boolean experimental) throws IOException {
+        URL url = getSearchUrl(experimental);
         logger.info("Retrieving current entry list from RCSB PDB Search API at {}", url.toString().split("\\?")[0]);
         Set<String> out = new HashSet<>();
         try (InputStream inputStream = url.openStream()) {
@@ -74,8 +75,8 @@ public class Helpers {
         return out;
     }
 
-    private static URL getSearchUrl() throws MalformedURLException {
-        String query = URLEncoder.encode(Constants.GET_ALL_QUERY, StandardCharsets.UTF_8);
+    private static URL getSearchUrl(boolean experimental) throws MalformedURLException {
+        String query = URLEncoder.encode(experimental ? Constants.GET_ALL_EXPERIMENTAL_QUERY : Constants.GET_ALL_CSM_QUERY, StandardCharsets.UTF_8);
         return new URL(Constants.SEARCH_API_URL + query);
     }
 

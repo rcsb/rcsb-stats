@@ -17,7 +17,7 @@ public class Task01_CountHeavyAtoms {
     }
 
     void computeStats() throws IOException {
-        Set<String> identifiers = Helpers.getAllIdentifiers();
+        Set<String> identifiers = Helpers.getAllIdentifiers(true);
 
         AtomicInteger counter = new AtomicInteger();
         long heavyAtomCount = Helpers.fetchStructureData(identifiers)
