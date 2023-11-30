@@ -1,7 +1,7 @@
 package org.rcsb.stats;
 
 public class Constants {
-    public static final String BCIF_SOURCE = "https://models.rcsb.org/%s.bcif.gz";
+    public static final String BCIF_SOURCE = "https://models-east.rcsb.org/%s.bcif.gz";
     public static final String SEARCH_API_URL = "https://search.rcsb.org/rcsbsearch/v2/query?json=";
     public static final String GET_ALL_EXPERIMENTAL_QUERY = """
             {
