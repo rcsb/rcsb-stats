@@ -28,7 +28,7 @@ jobs:
       - name: Commit updated counts
         run: |
           git add README.md
-          git commit -m "[actions] Updated counts"
+          git commit --allow-empty -m "[actions] Updated counts"
       - name: Push back to GitHub
         run: |
           git push
