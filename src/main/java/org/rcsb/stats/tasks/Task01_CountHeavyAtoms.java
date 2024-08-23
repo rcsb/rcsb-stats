@@ -35,7 +35,7 @@ public class Task01_CountHeavyAtoms {
                 // aggregate as sum
                 .sum();
 
-        logger.info("There are {} heavy (non-hydrogen) atoms in {} PDB structures", heavyAtomCount, Helpers.formatNumber(counter.get()));
+        logger.info("There are {} heavy (non-hydrogen) atoms in {} PDB structures", Helpers.formatNumber(heavyAtomCount), Helpers.formatNumber(counter.get()));
 
         // write results back to table in README.md
         Helpers.updateCount(this.getClass(), heavyAtomCount, counter.get());
