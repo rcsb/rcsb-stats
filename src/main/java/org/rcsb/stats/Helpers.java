@@ -5,8 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.rcsb.cif.CifIO;
 import org.rcsb.cif.ParsingException;
-import org.rcsb.cif.schema.StandardSchemata;
-import org.rcsb.cif.schema.mm.MmCifFile;
+import org.rcsb.cif.model.CifFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +28,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Shared functionality.
+ */
 public class Helpers {
     private static final Logger logger = LoggerFactory.getLogger(Helpers.class);
 
@@ -37,14 +39,14 @@ public class Helpers {
      * @param identifiers set to operate on
      * @return stream of structure data
      */
-    public static Stream<MmCifFile> fetchStructureData(Collection<String> identifiers) {
+    public static Stream<CifFile> fetchStructureData(Collection<String> identifiers) {
         return identifiers.parallelStream()
                 .map(Helpers::fetchStructureData);
     }
 
-    private static MmCifFile fetchStructureData(String identifier) {
+    private static CifFile fetchStructureData(String identifier) {
         try {
-            return CifIO.readFromURL(new URL(String.format(Constants.BCIF_SOURCE, identifier))).as(StandardSchemata.MMCIF);
+            return CifIO.readFromURL(new URL(String.format(Constants.BCIF_SOURCE, identifier)));
         } catch (IOException e) {
             logger.warn("Failed to pull structure data for {}", identifier);
             throw new UncheckedIOException(e);
@@ -56,13 +58,14 @@ public class Helpers {
 
     /**
      * Get a list of all experimental IDs known to the production system.
-     * @param experimental get experimental or computational identifiers
+     * @param contentTypes flavor of identifiers to request
      * @return collection of known entry IDs
      * @throws IOException operation failed
      */
-    public static Set<String> getAllIdentifiers(boolean experimental) throws IOException {
-        URL url = getSearchUrl(experimental);
+    public static Set<String> getAllIdentifiers(Set<Constants.ResultsContentType> contentTypes) throws IOException {
+        URL url = getSearchUrl(contentTypes);
         logger.info("Retrieving current entry list from RCSB PDB Search API at {}", url.toString().split("\\?")[0]);
+
         Set<String> out = new HashSet<>();
         try (InputStream inputStream = url.openStream()) {
             JsonElement jsonElement = new Gson().fromJson(new InputStreamReader(inputStream), JsonElement.class);
@@ -71,12 +74,18 @@ public class Helpers {
             jsonObject.getAsJsonArray("result_set")
                     .forEach(id -> out.add(id.getAsString()));
         }
+
         logger.info("There are {} entries", Helpers.formatNumber(out.size()));
         return out;
     }
 
-    private static URL getSearchUrl(boolean experimental) throws MalformedURLException {
-        String query = URLEncoder.encode(experimental ? Constants.GET_ALL_EXPERIMENTAL_QUERY : Constants.GET_ALL_CSM_QUERY, StandardCharsets.UTF_8);
+    private static URL getSearchUrl(Set<Constants.ResultsContentType> contentTypes) throws MalformedURLException {
+        String ct = contentTypes.stream()
+                .map(Constants.ResultsContentType::name)
+                .map(String::toLowerCase)
+                .map(t -> "\"" + t + "\"")
+                .collect(Collectors.joining(", "));
+        String query = URLEncoder.encode(String.format(Constants.GET_ALL_IDENTIFIERS_QUERY, ct), StandardCharsets.UTF_8);
         return new URL(Constants.SEARCH_API_URL + query);
     }
 
@@ -107,31 +116,41 @@ public class Helpers {
         return String.format("%,.2f", d);
     }
 
+    /**
+     * Write output of a file to the Markdown table in README.md
+     * @param task name of updater
+     * @param result obtained count
+     * @param structureCount number of evaluated entries
+     * @throws IOException things went wrong
+     */
     public static void updateCount(Class<?> task, long result, int structureCount) throws IOException {
         Path path = Paths.get("README.md");
         logger.info("Updating file at {}", path);
         String taskTag = task.getSimpleName().split("_")[0];
         String taskDescription = task.getSimpleName().split("_")[1];
-        String out = Files.lines(path)
-                .map(line -> {
-                    if (line.startsWith("| ")) {
-                        if (line.startsWith("| " + taskTag)) {
-                            return "| " + taskTag + " | " + insertWhitespaceBeforeUpperCase(taskDescription) + " | " + formatNumber(result) + " |";
-                        } else {
-                            return line;
-                        }
-                    } else if (line.startsWith("Last updated")) {
-                        LocalDate currentDate = LocalDate.now();
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yy");
-                        return line.split(": ")[0] + ": " + currentDate.format(formatter);
-                    } else if (line.startsWith("Number of structures")) {
-                        return line.split(": ")[0] + ": "  + formatNumber(structureCount);
+
+        try (Stream<String> lines = Files.lines(path)) {
+            String out = lines.map(line -> {
+                if (line.startsWith("| ")) {
+                    if (line.startsWith("| " + taskTag)) {
+                        return "| " + taskTag + " | " + insertWhitespaceBeforeUpperCase(taskDescription) + " | " + formatNumber(result) + " |";
                     } else {
                         return line;
                     }
-                })
-                .collect(Collectors.joining(System.lineSeparator()));
-        Files.writeString(path, out);
+                } else if (line.startsWith("Last updated")) {
+                    LocalDate currentDate = LocalDate.now();
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yy");
+                    return line.split(": ")[0] + ": " + currentDate.format(formatter);
+                } else if (line.startsWith("Number of structures")) {
+                    return line.split(": ")[0] + ": "  + formatNumber(structureCount);
+                } else {
+                    return line;
+                }
+            })
+            .collect(Collectors.joining(System.lineSeparator()));
+
+            Files.writeString(path, out);
+        }
     }
 
     private static String insertWhitespaceBeforeUpperCase(String input) {
