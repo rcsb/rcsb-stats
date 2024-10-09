@@ -1,7 +1,6 @@
-# Statistics
-Shared code to compute archive-wide statistics, like the number of non-hydrogen atoms.
+# Computing Archive-Wide Statistics
+Compute archive-wide statistics such as the total number of non-hydrogen atoms in all archive entries. Powered by the RCSB Search API and BinaryCIF.
 
-# Statistics
 | Task   | Description       | Count         |
 |--------|-------------------|---------------|
 | Task01 | Count Heavy Atoms | 2,200,914,737 |
