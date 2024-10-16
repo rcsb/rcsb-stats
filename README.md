@@ -3,7 +3,7 @@ Compute archive-wide statistics such as the total number of non-hydrogen atoms i
 
 | Task   | Description       | Count         |
 |--------|-------------------|---------------|
-| Task01 | Count Heavy Atoms | 2,200,914,737 |
+| Task01 | Count Heavy Atoms | 2,205,291,310 |
 
-Last updated: 10/09/24
-Number of structures: 225,946
+Last updated: 10/16/24
+Number of structures: 226,262
