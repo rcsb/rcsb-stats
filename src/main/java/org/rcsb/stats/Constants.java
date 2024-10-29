@@ -7,7 +7,9 @@ public class Constants {
     public static final String BCIF_SOURCE = "https://models.rcsb.org/%s.bcif.gz";
     public static final String SEARCH_API_URL = "https://search.rcsb.org/rcsbsearch/v2/query?json=";
 
-    // distinguishes experimentally-determined structures and computed structure models
+    /**
+     * Distinguishes experimentally-determined structures and computed structure models.
+     */
     public enum ResultsContentType {
         EXPERIMENTAL, COMPUTATIONAL;
     }

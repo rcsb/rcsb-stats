@@ -3,16 +3,12 @@ package org.rcsb.stats;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.rcsb.cif.CifIO;
-import org.rcsb.cif.ParsingException;
-import org.rcsb.cif.model.CifFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -22,7 +18,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,35 +30,13 @@ public class Helpers {
     private static final Logger logger = LoggerFactory.getLogger(Helpers.class);
 
     /**
-     * Obtain structure data for a collection of identifiers.
-     * @param identifiers set to operate on
-     * @return stream of structure data
-     */
-    public static Stream<CifFile> fetchStructureData(Collection<String> identifiers) {
-        return identifiers.parallelStream()
-                .map(Helpers::fetchStructureData);
-    }
-
-    private static CifFile fetchStructureData(String identifier) {
-        try {
-            return CifIO.readFromURL(new URL(String.format(Constants.BCIF_SOURCE, identifier)));
-        } catch (IOException e) {
-            logger.warn("Failed to pull structure data for {}", identifier);
-            throw new UncheckedIOException(e);
-        } catch (ParsingException e) {
-            logger.warn("Failed to parse structure data for {}", identifier);
-            throw e;
-        }
-    }
-
-    /**
-     * Get a list of all experimental IDs known to the production system.
+     * Get a list of all experimental IDs known to the RCSB PDB Search API.
      * @param contentTypes flavor of identifiers to request
      * @return collection of known entry IDs
      * @throws IOException operation failed
      */
-    public static Set<String> getAllIdentifiers(Set<Constants.ResultsContentType> contentTypes) throws IOException {
-        URL url = getSearchUrl(contentTypes);
+    public static Set<String> getAllIdentifiers(Constants.ResultsContentType... contentTypes) throws IOException {
+        URL url = getSearchUrl(Set.of(contentTypes));
         logger.info("Retrieving current entry list from RCSB PDB Search API at {}", url.toString().split("\\?")[0]);
 
         Set<String> out = new HashSet<>();

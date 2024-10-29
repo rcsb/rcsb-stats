@@ -1,5 +1,7 @@
 package org.rcsb.stats.tasks;
 
+import org.rcsb.cif.CifIO;
+import org.rcsb.cif.ParsingException;
 import org.rcsb.cif.model.CifFile;
 import org.rcsb.cif.schema.StandardSchemata;
 import org.rcsb.stats.Constants;
@@ -8,29 +10,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.URL;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Obtain the number of non-hydrogen atoms as described by the `atom_site` content of a mmCIF file.
+ * Obtain the number of non-hydrogen atoms as described by the `atom_site` content of an mmCIF file.
  */
 public class Task01_CountHeavyAtoms {
-    private static final Logger logger = LoggerFactory.getLogger(Task01_CountHeavyAtoms.class);
+    static final Logger logger = LoggerFactory.getLogger(Task01_CountHeavyAtoms.class);
+    final AtomicInteger counter = new AtomicInteger();
 
     public static void main(String[] args) throws IOException {
         new Task01_CountHeavyAtoms().computeStats();
     }
 
     void computeStats() throws IOException {
-        // request set of all known identifiers
-        Set<String> identifiers = Helpers.getAllIdentifiers(Set.of(Constants.ResultsContentType.EXPERIMENTAL));
-        AtomicInteger counter = new AtomicInteger();
+        // obtain set of all known identifiers (1ABC, 1ABD, ...)
+        Set<String> identifiers = Helpers.getAllIdentifiers(Constants.ResultsContentType.EXPERIMENTAL);
 
-        // obtain stream of CifFiles
-        long heavyAtomCount = Helpers.fetchStructureData(identifiers)
-                // log progress every 10,000 elements
-                .peek(i -> { if (counter.incrementAndGet() % 10000 == 0) logger.info("Processed {} entries", Helpers.formatNumber(counter.get())); })
-                // transform structure into number of atoms
+        // traverse all identifiers
+        long heavyAtomCount = identifiers.parallelStream().peek(this::logProgress)
+                // load the {@link CifFile} for each identifier
+                .map(this::fetchStructureData)
+                // process each structure: count the number of non-hydrogen atoms
                 .mapToLong(this::countHeavyAtoms)
                 // aggregate as sum
                 .sum();
@@ -42,21 +46,40 @@ public class Task01_CountHeavyAtoms {
     }
 
     /**
-     * Process a CIF file.
+     * Obtain structure for a single identifier from models.rcsb.org.
+     * @param identifier datum to load
+     * @return structure data in the form of a {@link CifFile}
+     */
+    CifFile fetchStructureData(String identifier) {
+        try {
+            URL url = new URL(String.format(Constants.BCIF_SOURCE, identifier));
+            // other CifIO methods allow reading from Paths or byte streams -- methods for writing can be found there too
+            return CifIO.readFromURL(url);
+        } catch (IOException e) {
+            logger.warn("Failed to pull structure data for {}", identifier);
+            throw new UncheckedIOException(e);
+        } catch (ParsingException e) {
+            logger.warn("Failed to parse structure data for {}", identifier);
+            throw e;
+        }
+    }
+
+    /**
+     * Process a CIF file (obtained from @link{CifIO#readFromUrl()}).
      * @param cifFile source data
      * @return the count of non-hydrogen atoms
      */
     long countHeavyAtoms(CifFile cifFile) {
         return cifFile
-                // optionally, apply mmCIF schema to get schema definitions and types
+                // optional: apply mmCIF schema to get schema definitions and types
                 .as(StandardSchemata.MMCIF)
                 // CIF files may have multiple blocks of data, the PDB archive only makes use of the 1st
                 .getFirstBlock()
-                // access `atom_site` category
+                // access the typed `atom_site` category (`.getCategory("atom_site")` would give you a generic category)
                 .getAtomSite()
-                // access `atom_site.type_symbol` column
+                // access the typed `atom_site.type_symbol` column (`.getColumn("type_symbol")` would give you a generic column)
                 .getTypeSymbol()
-                // stream over all element names of all atoms
+                // process the element name of all atoms -- typed access provides documentation and types directly from the mmCIF schema
                 .values()
                 // retain only non-hydrogen atoms
                 .filter(this::isHeavyAtom)
@@ -73,5 +96,14 @@ public class Task01_CountHeavyAtoms {
      */
     boolean isHeavyAtom(String typeSymbol) {
         return !HYDROGEN_ATOMS.contains(typeSymbol);
+    }
+
+    /**
+     * Indicate that 10,000 entries have been processed.
+     */
+    void logProgress(Object ignored) {
+        if (counter.incrementAndGet() % 10000 == 0) {
+            logger.info("Processed {} entries", Helpers.formatNumber(counter.get()));
+        }
     }
 }
